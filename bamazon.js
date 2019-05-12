@@ -4,6 +4,7 @@ const { table } = require('table');
 var data = [["sku", "Product", "Department", "Price", "Quantity"]];
 var currentRow = [];
 var output;
+var products = [];
 
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -16,6 +17,7 @@ const connection = mysql.createConnection({
 connection.connect(function (err) {
     if (err) throw err
     console.log('connected as id ' + connection.threadId);
+    currentProducts();
     inquirer.prompt([
         {
             name: "products",
@@ -27,7 +29,7 @@ connection.connect(function (err) {
             viewProduct();
         } else {
             addProduct();
-            // connection.end();
+            buyProduct();
         }
     })
 })
@@ -46,7 +48,6 @@ var viewProduct = () => {
         }
         output = table(data);
         console.log(output);
-        // connection.end();
         addProduct();
     })
 };
@@ -77,14 +78,56 @@ var addProduct = () => {
                     type: 'input'
                 }
             ]).then(function (answers) {
-                connection.query(`INSERT INTO inventory (productName, departmentName, price) VALUES ("${answers.product}", "${answers.department}", ${answers.price});`), function (err, results) {
+                connection.query(`INSERT INTO inventory (productName, departmentName, price) VALUES ("${answers.product}", "${answers.department}", ${answers.price});`, function (err, results) {
                     if (err) throw err;
-                }
+                })
                 console.log(`${answers.product} has been added to the inventory.`);
                 connection.end();
+            })
+        } else {
+            buyProduct();
+        }
+    })
+};
+
+var buyProduct = () => {
+    inquirer.prompt([
+        {
+            name: "purchase",
+            message: "Would you like to buy a product?",
+            type: "confirm"
+        }
+    ]).then(function (answers) {
+        if (answers.purchase) {
+            inquirer.prompt([
+                {
+                    name: "product",
+                    message: "What would you like to buy?",
+                    type: "list",
+                    choices: products
+                }
+            ]).then(function (answers) {
+                connection.query(`SELECT quantity FROM inventory WHERE productName = "${answers.product}";`, function(err, results) {
+                    if (err) throw err;
+                    var oldQuantity = results[0].quantity;
+                    var newQuantity = oldQuantity - 1;
+                    connection.query(`UPDATE inventory SET quantity = ${newQuantity} WHERE productName = "${answers.product}";`, function(err, results) {
+                        if (err) throw err;
+                        connection.end();
+                    })
+                })
             })
         } else {
             connection.end();
         }
     })
-};
+}
+
+var currentProducts = () => {
+    connection.query('SELECT productName FROM inventory;', function(err, results) {
+        if (err) throw err;
+        for (let product of results) {
+            products.push(product.productName);
+        }
+    })
+}
