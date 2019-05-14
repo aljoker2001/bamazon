@@ -7,6 +7,8 @@ var lowRow = [];
 var currentRow = [];
 var output;
 var products = [];
+var departments = ["Add New Department"];
+var quant;
 
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -20,6 +22,7 @@ connection.connect(function (err) {
     if (err) throw err
     console.log('connected as id ' + connection.threadId);
     currentProducts();
+    currentDepartments();
     inquirer.prompt([
         {
             name: "options",
@@ -73,6 +76,15 @@ var addProduct = () => {
         {
             name: 'department',
             message: 'In which department does this product fall?',
+            type: 'list',
+            choices: departments
+        },
+        {
+            when: function (response) {
+                return response.department === "Add New Department";
+            },
+            name: 'newDept',
+            message: 'What is the name of the department?',
             type: 'input'
         },
         {
@@ -81,16 +93,24 @@ var addProduct = () => {
             type: 'input'
         }
     ]).then(function (answers) {
-        connection.query(`INSERT INTO inventory (productName, departmentName, price) VALUES ("${answers.product}", "${answers.department}", ${answers.price});`, function (err, results) {
-            if (err) throw err;
-        })
-        console.log(`${answers.product} has been added to the inventory.`);
-        connection.end();
+        if (answers.newDept) {
+            connection.query(`INSERT INTO inventory (productName, departmentName, price) VALUES ("${answers.product}", "${answers.newDept}", ${answers.price});`, function (err, results) {
+                if (err) throw err;
+            })
+            console.log(`${answers.product} has been added to the inventory.`);
+            connection.end();
+        } else {
+            connection.query(`INSERT INTO inventory (productName, departmentName, price) VALUES ("${answers.product}", "${answers.department}", ${answers.price});`, function (err, results) {
+                if (err) throw err;
+            })
+            console.log(`${answers.product} has been added to the inventory.`);
+            connection.end();
+        }
     })
 };
 
 var lowInventory = () => {
-    connection.query(`SELECT productName, quantity FROM inventory WHERE quantity < 5;`, function(err, results) {
+    connection.query(`SELECT productName, quantity FROM inventory WHERE quantity < 5;`, function (err, results) {
         if (err) throw err;
         for (let product of results) {
             lowRow = [product.productName, product.quantity];
@@ -112,14 +132,14 @@ var addInventory = () => {
         },
         {
             name: "quantity",
-            message: "How much would you like to add?",
-            type: "input"
+            message: "How many would you like to add?",
+            type: "number"
         }
-    ]).then(function(answers) {
-        connection.query(`SELECT quantity FROM inventory WHERE productName = ${answers.product};`, function(err, results) {
+    ]).then(function (answers) {
+        connection.query(`SELECT quantity FROM inventory WHERE productName = "${answers.product}";`, function (err, results) {
             if (err) throw err;
-            var quant = results;
-            connection.query(`UPDATE inventory SET quantity = ${quant + answers.quantity} WHERE productName = ${answers.product};`, function(err, results) {
+            quant = parseInt(results[0].quantity);
+            connection.query(`UPDATE inventory SET quantity = ${quant + parseInt(answers.quantity)} WHERE productName = "${answers.product}";`, function (err, results) {
                 if (err) throw err;
                 console.log(`${answers.quantity} were added successfully to ${answers.product}.`);
             })
@@ -133,6 +153,17 @@ var currentProducts = () => {
         if (err) throw err;
         for (let product of results) {
             products.push(product.productName);
+        }
+    })
+}
+
+var currentDepartments = () => {
+    connection.query('SELECT departmentName FROM inventory;', function (err, results) {
+        if (err) throw err;
+        for (let department of results) {
+            if (!departments.includes(department.departmentName)) {
+                departments.push(department.departmentName);
+            }
         }
     })
 }
