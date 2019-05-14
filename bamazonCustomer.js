@@ -18,20 +18,7 @@ connection.connect(function (err) {
     if (err) throw err
     console.log('connected as id ' + connection.threadId);
     currentProducts();
-    inquirer.prompt([
-        {
-            name: "products",
-            message: "Would you like to see all available products?",
-            type: "confirm"
-        }
-    ]).then(function (answers) {
-        if (answers.products) {
-            viewProduct();
-        } else {
-            addProduct();
-            buyProduct();
-        }
-    })
+    viewProduct()
 })
 
 var viewProduct = () => {
@@ -48,7 +35,7 @@ var viewProduct = () => {
         }
         output = table(data);
         console.log(output);
-        addProduct();
+        buyProduct();
     })
 };
 
@@ -105,16 +92,28 @@ var buyProduct = () => {
                     message: "What would you like to buy?",
                     type: "list",
                     choices: products
+                },
+                {
+                    name: "quantity",
+                    message: "How many would you like to buy?",
+                    type: "input"
                 }
             ]).then(function (answers) {
-                connection.query(`SELECT quantity FROM inventory WHERE productName = "${answers.product}";`, function(err, results) {
+                connection.query(`SELECT quantity, price FROM inventory WHERE productName = "${answers.product}";`, function (err, results) {
                     if (err) throw err;
                     var oldQuantity = results[0].quantity;
-                    var newQuantity = oldQuantity - 1;
-                    connection.query(`UPDATE inventory SET quantity = ${newQuantity} WHERE productName = "${answers.product}";`, function(err, results) {
-                        if (err) throw err;
+                    var newQuantity = oldQuantity - answers.quantity;
+                    var total = results[0].price * answers.quantity;
+                    if (newQuantity >= 0) {
+                        connection.query(`UPDATE inventory SET quantity = ${newQuantity} WHERE productName = "${answers.product}";`, function (err, results) {
+                            if (err) throw err;
+                            console.log(`Your total comes to $${total}.`);
+                            connection.end();
+                        })
+                    } else {
+                        console.log("There is not enough of that product in stock!");
                         connection.end();
-                    })
+                    }
                 })
             })
         } else {
@@ -124,7 +123,7 @@ var buyProduct = () => {
 }
 
 var currentProducts = () => {
-    connection.query('SELECT productName FROM inventory;', function(err, results) {
+    connection.query('SELECT productName FROM inventory;', function (err, results) {
         if (err) throw err;
         for (let product of results) {
             products.push(product.productName);
