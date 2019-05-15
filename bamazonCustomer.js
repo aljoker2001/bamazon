@@ -99,8 +99,9 @@ var buyProduct = () => {
                     type: "input"
                 }
             ]).then(function (answers) {
-                connection.query(`SELECT quantity, price FROM inventory WHERE productName = "${answers.product}";`, function (err, results) {
+                connection.query(`SELECT quantity, price, product_sales FROM inventory WHERE productName = "${answers.product}";`, function (err, results) {
                     if (err) throw err;
+                    var sales = results[0].product_sales;
                     var oldQuantity = results[0].quantity;
                     var newQuantity = oldQuantity - answers.quantity;
                     var total = results[0].price * answers.quantity;
@@ -108,6 +109,9 @@ var buyProduct = () => {
                         connection.query(`UPDATE inventory SET quantity = ${newQuantity} WHERE productName = "${answers.product}";`, function (err, results) {
                             if (err) throw err;
                             console.log(`Your total comes to $${total}.`);
+                            connection.query(`UPDATE inventory SET product_sales = ${sales + total} WHERE productName = "${answers.product}";`, function(err, results) {
+                                if (err) throw err;
+                            })
                             connection.end();
                         })
                     } else {
