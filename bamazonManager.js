@@ -158,11 +158,11 @@ var currentProducts = () => {
 }
 
 var currentDepartments = () => {
-    connection.query('SELECT departmentName FROM inventory;', function (err, results) {
+    connection.query('SELECT department_name FROM departments;', function (err, results) {
         if (err) throw err;
         for (let department of results) {
-            if (!departments.includes(department.departmentName)) {
-                departments.push(department.departmentName);
+            if (!departments.includes(department.department_name)) {
+                departments.push(department.department_name);
             }
         }
     })
