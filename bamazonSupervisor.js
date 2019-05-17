@@ -42,9 +42,9 @@ connection.connect(function (err) {
 var viewSales = () => {
     connection.query(`SELECT DISTINCT departments.department_id, departments.department_name, departments.over_head_costs, inventory.product_sales, inventory.product_sales - departments.over_head_costs AS total_sales
     FROM inventory
-    INNER JOIN departments ON inventory.departmentName = departments.department_name;`, function (err, results) {
+    RIGHT JOIN departments ON inventory.departmentName = departments.department_name
+    GROUP BY departments.department_id ORDER BY departments.department_id;`, function (err, results) {
             if (err) throw err;
-            // console.log(results);
             for (let row of results) {
                 currentRow = [];
                 currentRow.push(row.department_id);
