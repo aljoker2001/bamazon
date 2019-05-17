@@ -3,13 +3,8 @@ const mysql = require('mysql');
 const { table } = require('table');
 const _ = require('lodash');
 var data = [["department_id", "department_name", "over_head_costs", "product_sales", "total_profit"]];
-var low = [["Product", "Quantity"]];
-var lowRow = [];
 var currentRow = [];
 var output;
-var products = [];
-var departments = ["Add New Department"];
-var quant;
 
 // creates connection to the bamazon_db database
 const connection = mysql.createConnection({
