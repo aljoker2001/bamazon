@@ -11,6 +11,7 @@ var products = [];
 var departments = ["Add New Department"];
 var quant;
 
+// creates connection to the bamazon_db database
 const connection = mysql.createConnection({
     host: 'localhost',
     port: 3306,
@@ -19,11 +20,10 @@ const connection = mysql.createConnection({
     database: 'bamazon_db'
 });
 
+// provides the user with two options, then runs the specific function based on their answer
 connection.connect(function (err) {
     if (err) throw err
     console.log('connected as id ' + connection.threadId);
-    // currentProducts();
-    // currentDepartments();
     inquirer.prompt([
         {
             name: "options",
@@ -43,6 +43,7 @@ connection.connect(function (err) {
     })
 })
 
+// displays a table of all of the required pieces of data once run
 var viewSales = () => {
     connection.query(`SELECT DISTINCT departments.department_id, departments.department_name, departments.over_head_costs, inventory.product_sales, inventory.product_sales - departments.over_head_costs AS total_sales
     FROM inventory
@@ -64,6 +65,7 @@ var viewSales = () => {
     connection.end();
 };
 
+// prompts the user to enter the department name and over head cost, then updates the database with the new information
 var newDept = () => {
     inquirer.prompt([
         {

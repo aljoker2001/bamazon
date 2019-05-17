@@ -6,6 +6,7 @@ var currentRow = [];
 var output;
 var products = [];
 
+// creates connection to the bamazon_db database
 const connection = mysql.createConnection({
     host: 'localhost',
     port: 3306,
@@ -14,6 +15,7 @@ const connection = mysql.createConnection({
     database: 'bamazon_db'
 });
 
+// populates the data table and calls the viewProduct function once connected to the database
 connection.connect(function (err) {
     if (err) throw err
     console.log('connected as id ' + connection.threadId);
@@ -21,6 +23,7 @@ connection.connect(function (err) {
     viewProduct()
 })
 
+// creates the table to be displayed once the function is called using the table npm package then calls the buyProduct function
 var viewProduct = () => {
     connection.query(`SELECT * FROM inventory;`, function (err, results) {
         if (err) throw error;
@@ -39,44 +42,7 @@ var viewProduct = () => {
     })
 };
 
-var addProduct = () => {
-    inquirer.prompt([
-        {
-            name: "add",
-            message: "Would you like to add a product?",
-            type: "confirm"
-        }
-    ]).then(function (answers) {
-        if (answers.add) {
-            inquirer.prompt([
-                {
-                    name: 'product',
-                    message: 'What is the name of the product?',
-                    type: 'input'
-                },
-                {
-                    name: 'department',
-                    message: 'In which department does this product fall?',
-                    type: 'input'
-                },
-                {
-                    name: 'price',
-                    message: 'How much does the product cost?',
-                    type: 'input'
-                }
-            ]).then(function (answers) {
-                connection.query(`INSERT INTO inventory (productName, departmentName, price) VALUES ("${answers.product}", "${answers.department}", ${answers.price});`, function (err, results) {
-                    if (err) throw err;
-                })
-                console.log(`${answers.product} has been added to the inventory.`);
-                connection.end();
-            })
-        } else {
-            buyProduct();
-        }
-    })
-};
-
+// asks the user if they want to buy a product, if so, what they would like to buy and how many, then updates the database with the new quantity and displays the total price to the user
 var buyProduct = () => {
     inquirer.prompt([
         {
@@ -126,6 +92,7 @@ var buyProduct = () => {
     })
 }
 
+// builds the array of current products to be displayed once table() is called
 var currentProducts = () => {
     connection.query('SELECT productName FROM inventory;', function (err, results) {
         if (err) throw err;

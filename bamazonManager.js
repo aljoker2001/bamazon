@@ -10,6 +10,7 @@ var products = [];
 var departments = ["Add New Department"];
 var quant;
 
+// creates connection to the bamazon_db database
 const connection = mysql.createConnection({
     host: 'localhost',
     port: 3306,
@@ -18,6 +19,7 @@ const connection = mysql.createConnection({
     database: 'bamazon_db'
 });
 
+// populates the data table and departments table then displays a list of options for the user to choose
 connection.connect(function (err) {
     if (err) throw err
     console.log('connected as id ' + connection.threadId);
@@ -48,6 +50,7 @@ connection.connect(function (err) {
     })
 })
 
+// creates the table to be displayed once the function is called using the table npm package then calls the buyProduct function
 var viewProduct = () => {
     connection.query(`SELECT * FROM inventory;`, function (err, results) {
         if (err) throw error;
@@ -66,6 +69,7 @@ var viewProduct = () => {
     })
 };
 
+// prompts user to define their product if they choose to add a product and displays a confirmation if successful
 var addProduct = () => {
     inquirer.prompt([
         {
@@ -109,6 +113,7 @@ var addProduct = () => {
     })
 };
 
+// creates the table displaying any item with less than 5 items remaining in quantity
 var lowInventory = () => {
     connection.query(`SELECT productName, quantity FROM inventory WHERE quantity < 5;`, function (err, results) {
         if (err) throw err;
@@ -122,6 +127,7 @@ var lowInventory = () => {
     })
 }
 
+// prompts user to select the item to add and then asks how many they would like to add
 var addInventory = () => {
     inquirer.prompt([
         {
@@ -135,6 +141,7 @@ var addInventory = () => {
             message: "How many would you like to add?",
             type: "number"
         }
+    // updates table with the added quantity
     ]).then(function (answers) {
         connection.query(`SELECT quantity FROM inventory WHERE productName = "${answers.product}";`, function (err, results) {
             if (err) throw err;
@@ -148,6 +155,7 @@ var addInventory = () => {
     })
 };
 
+// builds the array of current products to be displayed once table() is called
 var currentProducts = () => {
     connection.query('SELECT productName FROM inventory;', function (err, results) {
         if (err) throw err;
@@ -157,6 +165,7 @@ var currentProducts = () => {
     })
 }
 
+// builds the array of current departments to be displayed once table() is called
 var currentDepartments = () => {
     connection.query('SELECT department_name FROM departments;', function (err, results) {
         if (err) throw err;
