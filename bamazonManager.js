@@ -94,7 +94,13 @@ var addProduct = () => {
         {
             name: 'price',
             message: 'How much does the product cost?',
-            type: 'input'
+            type: 'input',
+            validate: function(input) {
+                if (isNaN(input) === true) {
+                    return "You must enter a number.";
+                }
+                return true;
+            }
         }
     ]).then(function (answers) {
         if (answers.newDept) {
@@ -139,7 +145,13 @@ var addInventory = () => {
         {
             name: "quantity",
             message: "How many would you like to add?",
-            type: "number"
+            type: "input",
+            validate: function(input) {
+                if (isNaN(input) === true) {
+                    return "You must enter a number.";
+                }
+                return true;
+            }
         }
     // updates table with the added quantity
     ]).then(function (answers) {
@@ -175,4 +187,11 @@ var currentDepartments = () => {
             }
         }
     })
+}
+
+var validate = (input) => {
+    if (isNaN(input) === true) {
+        return "You must enter a number.";
+    }
+    return true;
 }

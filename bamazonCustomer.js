@@ -62,7 +62,13 @@ var buyProduct = () => {
                 {
                     name: "quantity",
                     message: "How many would you like to buy?",
-                    type: "input"
+                    type: "input",
+                    validate: function(input) {
+                        if (isNaN(input) === true) {
+                            return "You must enter a number.";
+                        }
+                        return true;
+                    }
                 }
             ]).then(function (answers) {
                 connection.query(`SELECT quantity, price, product_sales FROM inventory WHERE productName = "${answers.product}";`, function (err, results) {

@@ -71,7 +71,13 @@ var newDept = () => {
         {
             name: "overhead",
             message: "Please enter over head cost:",
-            type: "input"
+            type: "input",
+            validate: function(input) {
+                if (isNaN(input) === true) {
+                    return "You must enter a number.";
+                }
+                return true;
+            }
         }
     ]).then(function(answers) {
         connection.query(`INSERT INTO departments (department_name, over_head_costs) VALUES ("${answers.department}", "${answers.overhead}");`, function(err, results) {
